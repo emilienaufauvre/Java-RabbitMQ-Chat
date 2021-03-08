@@ -35,10 +35,10 @@ public class Server
     // (used in RPC i.e. server checking when connecting).
     private final static String QUEUE_CONNECTIONS =
             "rabbitmq://server/queue/connections_disconnections/";
-    // Output exchange (redirect/show messages of clients).
+    // Messages exchange (between the clients and also the server).
     private final static String EXCHANGE_MESSAGES =
             "rabbitmq://server/exchange/messages/";
-    // Output exchange (redirect/show connections/disconnections to clients).
+    // Connections and disconnections exchange (published by this server).
     private final static String EXCHANGE_CONNECTIONS =
             "rabbitmq://server/exchange/connections_disconnections/";
 
@@ -118,17 +118,12 @@ public class Server
         mChannel.basicConsume(queueName, true,
                 this::onMessage,
                 consumerTag -> { });
-
-        // RPC connection queue:
-        // - Remove all message in the queue which are not waiting for acknowledgement.
-        //mChannel.queuePurge(QUEUE_CONNECTIONS);
-        // - 1 unacknowledged message at once.
-        //mChannel.basicQos(1);
     }
 
     /**
      * Handle the connection or disconnection (contained in "delivery")
-     * of a client. Return true if correctly done.
+     * of a client. In the case of a connection, it's a RPC, and it return true
+     * (or false if not correctly done) with the messages, and connected clients lists.
      */
     private void onConnection(String consumerTag, Delivery delivery) throws IOException
     {
@@ -154,13 +149,17 @@ public class Server
             {
                 System.out.println("Connection fail: " + connection.getName());
             }
-            // Publish the response.
+            // Publish the responses (RPC).
             AMQP.BasicProperties replyProps = new AMQP.BasicProperties
                     .Builder()
                     .correlationId(delivery.getProperties().getCorrelationId())
                     .build();
             mChannel.basicPublish("", delivery.getProperties().getReplyTo(),
                     replyProps, SerializationUtils.serialize(response));
+            mChannel.basicPublish("", delivery.getProperties().getReplyTo(),
+                    replyProps, SerializationUtils.serialize(mMessages));
+            mChannel.basicPublish("", delivery.getProperties().getReplyTo(),
+                    replyProps, SerializationUtils.serialize(mUserNames));
         }
         else
         {
@@ -171,7 +170,7 @@ public class Server
             mChannel.basicPublish(EXCHANGE_CONNECTIONS, "", null,
                     delivery.getBody());
         }
-        // Acknowledgment.
+        // Acknowledgment (RPC).
         mChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
         // RabbitMq consumer worker thread notifies the RPC server owner thread.
         synchronized (mMonitor)

@@ -7,6 +7,7 @@ import superchat.data.Message;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -91,7 +92,17 @@ public class Client
 
         try
         {
-            if (! connectRPC(name))
+            BlockingQueue<Object> response = connectRPC(name);
+
+            boolean isConnected = (boolean) response.take();
+            @SuppressWarnings("unchecked")
+            ArrayList<Message> messageHistory = (ArrayList<Message>) response.take();
+            @SuppressWarnings("unchecked")
+            ArrayList<String> connectedClients = (ArrayList<String>) response.take();
+
+            System.out.println(connectedClients);
+
+            if (! isConnected)
             {
                 mApp.addToChat("[Server]: Error, this pseudo is not available.",
                         superchat.Application.ATTR_ERROR);
@@ -102,6 +113,17 @@ public class Client
                 // Successfully connected.
                 mName = name;
                 mIsConnected = true;
+                // Add the connected clients to the left list.
+                connectedClients.forEach(client -> mApp.addToUsersList(client));
+                // And add the message history.
+                messageHistory.forEach(
+                        message ->
+                        {
+                            mApp.addToChat("(" + message.getTime() + ") ", Application.ATTR_BOLD);
+                            mApp.addToChat(message.getName() + ": ", Application.ATTR_BOLD);
+                            mApp.addToChat(message.getContent(), Application.ATTR_PLAIN);
+                        }
+                );
             }
         }
         catch (Exception e)
@@ -111,9 +133,6 @@ public class Client
             return false;
         }
 
-        // TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO TODO
-        //retrieveMessages();
-
         mApp.addToChat("[Server]: You are connected as \"" + mName + "\".",
                 superchat.Application.ATTR_SERVER);
 
@@ -121,10 +140,11 @@ public class Client
     }
 
     /**
-     * Try to connect the client on the server, and wait for its response
-     * (true if user correctly created, false if not i.e. pseudo already exists).
+     * Try to connect the client on the server, and wait for its response,
+     * by using a RPC call. Return true if user correctly created,
+     * false if not (i.e. pseudo already exists).
      */
-    private boolean connectRPC(String name) throws IOException, InterruptedException
+    private BlockingQueue<Object> connectRPC(String name) throws IOException
     {
         // Create the connection request.
         superchat.data.Connection connection =
@@ -143,9 +163,9 @@ public class Client
         mChannel.basicPublish("", QUEUE_CONNECTIONS, props,
                 SerializationUtils.serialize(connection));
         // Get the response.
-        final BlockingQueue<Boolean> response = new ArrayBlockingQueue<>(1);
+        final BlockingQueue<Object> response = new ArrayBlockingQueue<>(3);
 
-        String ctag = mChannel.basicConsume(replyQueueName, true,
+        mChannel.basicConsume(replyQueueName, true,
                 (consumerTag, delivery) ->
                 {
                     if (delivery.getProperties().getCorrelationId().equals(corrId))
@@ -157,10 +177,7 @@ public class Client
                 consumerTag -> { }
         );
 
-        boolean result = response.take();
-        mChannel.basicCancel(ctag);
-
-        return result;
+        return response;
     }
 
     /**

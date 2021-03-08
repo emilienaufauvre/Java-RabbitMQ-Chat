@@ -35,7 +35,7 @@ our chat is centralized.
 
 * A real-time connected user list is proposed (even for those not connected).
 
-* On connection, the client will receive all the messages not received.
+* On its connection, the client will receive all the message history.
 
 * Server logs indicate connections/disconnections/errors.
 
@@ -56,9 +56,18 @@ our chat is centralized.
     * Created in the `Application` and bound with it.
 
     * Saves her/his pseudo on the server side by using the a `RPC` pattern
-      (i.e. a _request_ queue is created to send `Connection` and `Disconnection`
-      requests to the `Server`, and a temporary _response_ queue is created on the
+      (i.e. a _request queue_ is created to send `Connection` requests to the 
+      `Server`, and a temporary _response queue_ is created on the
       `Client` side to inform her/his that the request was _accepted_ or _denied_).
+
+    * On `Connection` successful, the `Server` also gives the _connected pseudos_ and 
+      _message history_ to this new user, by using the same `RPC` pattern/queue (i.e. 
+      on this `RPC` the _boolean response_, and these two lists, are published by the
+      `Server` in the _response queue_, and retrieved by the `Client` with a `BlockingQueue`).
+      
+    * Disconnects her/his by publishing a `Disconnection` request in the same _request queue_
+      that the `Connection` ones use. However, no response from the `Server` is expected
+      (i.e. this is not a `RPC` call).
       
     * Subscribes to all the other `Clients` to receive their `Messages` and 
       publishes to all their timelines when sending. To do that a `fanout` _exchange_
@@ -72,19 +81,20 @@ our chat is centralized.
 
 * The `Server` class:
     
-    * Accepts or denies `Connection` requests, and executes the `Disconnection` 
-      ones by updating a list of unique _pseudos_.
-      
-    * Receives `Messages` from the `Clients`.
-
-    * Retrieves/Saves the message history on launch/exit, in the
-      `$HOME/.superchat/history2` file on the host.
+    * Accepts or denies `Connection` requests (using the previously described `RPC` pattern), 
+      and executes the `Disconnection` ones by updating a list of unique _pseudos_.
+        
+    * Spreads the `Connection` and `Disconnection` to all the clients, when they are
+      confirmed, using a `fanout` _exchange_.
+    
+    * Also receives `Messages` from the `Clients` to retrieves/saves the message history 
+      on launch/exit, in the `$HOME/.superchat/history2` file on the `Server` host.
       
 Here the summary of the exchanges (using `RabbitMQ`) between the `Client` 
 and `Server` entities:
 
 <p align="center">
-	<img src="src/main/resources/architecture.svg" width="100%">
+	<img src="src/main/resources/architecture.png" width="100%">
 	<br>
 </p>
 

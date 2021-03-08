@@ -485,7 +485,10 @@ public class Application
 
     public void addToUsersList(String name)
     {
-        mUserList.addElement(name);
+        if (! mUserList.contains(name))
+        {
+            mUserList.addElement(name);
+        }
     }
 
     public void removeFromUserList(String name)
