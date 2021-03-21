@@ -16,8 +16,8 @@ import java.awt.image.BufferedImage;
  */
 public class Application
 {
-    public static void main(String[] args) 
-    {   
+    public static void main(String[] args)
+    {
         // Create the client.
         Client client = new Client(parseArgs(args));
         // Start the app with this client.
@@ -93,17 +93,17 @@ public class Application
     {
         // Bold.
         StyleConstants.setBold(ATTR_BOLD, true);
-        StyleConstants.setFontSize(ATTR_BOLD, 25);
+        StyleConstants.setFontSize(ATTR_BOLD, (int) convertFontSizeForWindows(25D));
         // Italic.
         StyleConstants.setItalic(ATTR_ITALIC, true);
-        StyleConstants.setFontSize(ATTR_ITALIC, 30);
+        StyleConstants.setFontSize(ATTR_ITALIC, (int) convertFontSizeForWindows(25D));
         // Error.
         StyleConstants.setBold(ATTR_ERROR, true); 
         StyleConstants.setForeground(ATTR_ERROR, Color.red);
-        StyleConstants.setFontSize(ATTR_ERROR, 25);
+        StyleConstants.setFontSize(ATTR_ERROR, (int) convertFontSizeForWindows(25D));
         // Server.
         StyleConstants.setBold(ATTR_SERVER, true); 
-        StyleConstants.setFontSize(ATTR_SERVER, 25);
+        StyleConstants.setFontSize(ATTR_SERVER, (int) convertFontSizeForWindows(25D));
     }
 
     private void loadAssets()
@@ -121,9 +121,9 @@ public class Application
 
     private void setDialogs()
     {
-        UIManager.put("OptionPane.messageFont", new Font(FONT, Font.BOLD, 30));
-        UIManager.put("OptionPane.buttonFont", new Font(FONT, Font.PLAIN, 25));
-        UIManager.put("TextField.font", new Font(FONT, Font.PLAIN, 25));
+        UIManager.put("OptionPane.messageFont", new Font(FONT, Font.BOLD, (int) convertFontSizeForWindows(30D)));
+        UIManager.put("OptionPane.buttonFont", new Font(FONT, Font.PLAIN, (int) convertFontSizeForWindows(25D)));
+        UIManager.put("TextField.font", new Font(FONT, Font.PLAIN, (int) convertFontSizeForWindows(25D)));
     }
 
     private void createFrame()
@@ -175,7 +175,7 @@ public class Application
         constraints1.weighty = 0;
         constraints1.gridx = 0;
         constraints1.gridy = 0;
-        // User names. 
+        // User names.
         GridBagConstraints constraints2 = new GridBagConstraints();
         constraints2.weightx = 1;
         constraints2.weighty = 1;
@@ -232,9 +232,9 @@ public class Application
         // Message list.
         mChatArea = new JTextPane();
         mChatArea.setMargin(new Insets(20, 20, 20, 20));
-        mChatArea.setFont(new Font(FONT, Font.PLAIN, 25));
+        mChatArea.setFont(new Font(FONT, Font.PLAIN, (int) convertFontSizeForWindows(25D)));
         mChatArea.setEditable(false);
-        addToChat("Welcome on super-chat v1.\n" +
+        addToChat("Welcome on super-chat v2.\n" +
                 "You can log in using the button at the bottom left.\n\n",
                 ATTR_ITALIC); 
 
@@ -255,11 +255,11 @@ public class Application
         // User input.
         JTextField textField = new JTextField();
         textField.setMargin(new Insets(20, 20, 20, 20));
-        textField.setFont(new Font(FONT, Font.PLAIN, 25));
+        textField.setFont(new Font(FONT, Font.PLAIN, (int) convertFontSizeForWindows(25D)));
         textField.addActionListener(onSendInput(textField));
         // Send button.
         JButton button = new JButton("SEND");
-        button.setFont(new Font(FONT, Font.BOLD, 25));
+        button.setFont(new Font(FONT, Font.BOLD, (int) convertFontSizeForWindows(25D)));
         button.addActionListener(onSendInput(textField));
 
         // User input
@@ -323,13 +323,13 @@ public class Application
         // App title.
         String APP_NAME = "Super-chat v2";
         JLabel label1 = new JLabel(APP_NAME, SwingConstants.CENTER);
-        label1.setFont(new Font(FONT, Font.BOLD, 60));
+        label1.setFont(new Font(FONT, Font.BOLD, (int) convertFontSizeForWindows(60D)));
         label1.setForeground(new Color(0x2484c2));
         JPanel panel_ = new JPanel(); // To force margins...
         panel_.setBorder(new EmptyBorder(40, 40, 80, 40));
         panel_.add(label1);
         // App icon
-        JLabel label2 = new JLabel(new ImageIcon(mIcon));
+        JLabel label2 = new JLabel(convertIconWindows());
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(new EmptyBorder(40, 40, 40, 20));
@@ -346,7 +346,7 @@ public class Application
     {
         // Title.
         JLabel label = new JLabel("Current Users", JLabel.CENTER);
-        label.setFont(new Font(FONT, Font.BOLD, 30));
+        label.setFont(new Font(FONT, Font.BOLD, (int) convertFontSizeForWindows(30D)));
         JPanel panel_ = new JPanel(); // To force margins...
         panel_.setBorder(new EmptyBorder(0, 0, 20, 0));
         panel_.add(label);
@@ -354,7 +354,7 @@ public class Application
         mUserList = new DefaultListModel<>();
         JList<String> list = new JList<>(mUserList);
         list.setBorder(new EmptyBorder(40, 40, 40, 20));
-        list.setFont(new Font(FONT, Font.PLAIN, 25));
+        list.setFont(new Font(FONT, Font.PLAIN, (int) convertFontSizeForWindows(25D)));
         list.setVisibleRowCount(8);
 
         JScrollPane scrollPane = new JScrollPane(list);
@@ -377,11 +377,11 @@ public class Application
         JButton button2 = new JButton("DISCONNECT");
 
         // Connect button.
-        button1.setFont(new Font(FONT, Font.BOLD, 25));
+        button1.setFont(new Font(FONT, Font.BOLD, (int) convertFontSizeForWindows(25D)));
         button1.addActionListener(onConnection(button1, button2));
         button1.setEnabled(true);
         // Disconnect button.
-        button2.setFont(new Font(FONT, Font.BOLD, 25));
+        button2.setFont(new Font(FONT, Font.BOLD, (int) convertFontSizeForWindows(25D)));
         button2.addActionListener(onDisconnection(button1, button2));
         button2.setEnabled(false);
         // Connect button.
@@ -499,5 +499,32 @@ public class Application
     public void clearUsersList()
     {
         mUserList.clear();
+    }
+
+    public double convertFontSizeForWindows(double fontSize)
+    {
+        // Are we running within a Windows platform?
+        if (System.getProperty("os.name").toLowerCase().contains("windows"))
+        {
+            // Yes, so let's convert the font size to accommodate windows.
+            double screenWidth = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+            double testedWidth = 1500D; // Tested windows platform.
+            return fontSize / ((testedWidth / screenWidth) * 2D);
+        }
+        // No, just return the original font size.
+        return fontSize;
+    }
+
+    public ImageIcon convertIconWindows()
+    {
+        // Are we running within a Windows platform?
+        if (System.getProperty("os.name").toLowerCase().contains("windows"))
+        {
+            // Yes, scale it the smooth way.
+            return new ImageIcon(mIcon.getScaledInstance(120, 120,
+                    java.awt.Image.SCALE_SMOOTH));
+        }
+        // No, just return the original.
+        return new ImageIcon(mIcon);
     }
 }
