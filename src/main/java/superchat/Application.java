@@ -521,7 +521,11 @@ public class Application
         if (System.getProperty("os.name").toLowerCase().contains("windows"))
         {
             // Yes, scale it the smooth way.
-            return new ImageIcon(mIcon.getScaledInstance(120, 120,
+            double screenWidth = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+            double testedWidth = 1500D; // Tested windows platform.
+            return new ImageIcon(mIcon.getScaledInstance(
+                    (int) (180 * (screenWidth / testedWidth)),
+                    (int) (180 * (screenWidth / testedWidth)),
                     java.awt.Image.SCALE_SMOOTH));
         }
         // No, just return the original.
